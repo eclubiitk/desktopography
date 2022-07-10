@@ -1,18 +1,9 @@
-## License: Apache 2.0. See LICENSE file in root directory.
-## Copyright(c) 2017 Intel Corporation. All Rights Reserved.
-
-#####################################################
-##              Align Depth to Color               ##
-#####################################################
-
-# First import the library
 import pyrealsense2 as rs
-# Import Numpy for easy array manipulation
 import numpy as np
 import mediapipe as mp
-
-# Import OpenCV for easy image rendering
 import cv2
+import hand_detect
+from org.hand_detect import hand_found
 
 # Global Vars
 FINGER_DEP = []
@@ -23,8 +14,7 @@ SCREEN_DEP = None
 # Create a pipeline
 pipeline = rs.pipeline()
 
-# Create a config and configure the pipeline to stream
-#  different resolutions of color and depth streams
+# Create a config and configure the pipeline
 config = rs.config()
 
 # Get device product line for setting a supporting resolution
@@ -68,10 +58,6 @@ clipping_distance = clipping_distance_in_meters / depth_scale
 align_to = rs.stream.color
 align = rs.align(align_to)
 
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands()
-mp_draw = mp.solutions.drawing_utils
-
 # Streaming loop
 try:
     while True:
@@ -97,21 +83,22 @@ try:
 
         
         #my editing
-        results = hands.process(color_image)
+        results = hand_detect.hand_found(color_image)
         if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                for id, lm in enumerate(hand_landmarks.landmark):
-                    if (id in (4,8,12,16,20)):                    #index finger
-                        pos_x = int(lm.x*480)
-                        pos_y = int(lm.y*640)
-                        cv2.circle(depth_image,(int(lm.x*640),int(lm.y*480)),5,(0,0,255),5)                 #index finger
-                        FINGER_DEP[id/4 - 1] = depth_image[pos_x][pos_y]
-                        FINGER_XY[id/4 -1] = (pos_x,pos_y)
-                        # if not(ref_dep):
-                        #     ref_dep = img_grey[240][320]
-                FINGER_TO_SCR = [FINGER_DEP[x]-SCREEN_DEP for x in range(5)]
-                print(FINGER_TO_SCR)
-                mp_draw.draw_landmarks(color_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
+            hand_detect.find_hand(results,FINGER_DEP,FINGER_XY)
+            # for hand_landmarks in results.multi_hand_landmarks:
+            #     for id, lm in enumerate(hand_landmarks.landmark):
+            #         if (id in (4,8,12,16,20)):                    #index finger
+            #             pos_x = int(lm.x*480)
+            #             pos_y = int(lm.y*640)
+            #             cv2.circle(depth_image,(int(lm.x*640),int(lm.y*480)),5,(0,0,255),5)                 #index finger
+            #             FINGER_DEP[id/4 - 1] = depth_image[pos_x][pos_y]
+            #             FINGER_XY[id/4 -1] = (pos_x,pos_y)
+            #             # if not(ref_dep):
+            #             #     ref_dep = img_grey[240][320]
+            FINGER_TO_SCR = [FINGER_DEP[x]-SCREEN_DEP for x in range(5)]
+            print(FINGER_TO_SCR)
+            #     mp_draw.draw_landmarks(color_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
                 # mp_draw.draw_landmarks(depth_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
             for i,val in enumerate(FINGER_TO_SCR):
                 if val<1:
