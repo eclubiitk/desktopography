@@ -3,7 +3,6 @@ import numpy as np
 import mediapipe as mp
 import cv2
 import hand_detect
-from org.hand_detect import hand_found
 
 # Global Vars
 FINGER_DEP = []

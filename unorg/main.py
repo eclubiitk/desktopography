@@ -15,10 +15,10 @@ import mediapipe as mp
 import cv2
 
 # Global Vars
-FINGER_DEP = []
-FINGER_XY = []
-FINGER_TO_SCR = []
-SCREEN_DEP = None
+FINGER_DEP = [0,0,0,0,0]
+FINGER_XY = [(0,0),(0,0),(0,0),(0,0),(0,0)]
+FINGER_TO_SCR = [0,0,0,0,0]
+SCREEN_DEP = 0
 
 # Create a pipeline
 pipeline = rs.pipeline()
@@ -98,6 +98,7 @@ try:
         
         #my editing
         results = hands.process(color_image)
+        # print(type(results))
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 for id, lm in enumerate(hand_landmarks.landmark):
@@ -105,8 +106,8 @@ try:
                         pos_x = int(lm.x*480)
                         pos_y = int(lm.y*640)
                         cv2.circle(depth_image,(int(lm.x*640),int(lm.y*480)),5,(0,0,255),5)                 #index finger
-                        FINGER_DEP[id/4 - 1] = depth_image[pos_x][pos_y]
-                        FINGER_XY[id/4 -1] = (pos_x,pos_y)
+                        FINGER_DEP[int(id/4 - 1)] = depth_image[pos_x][pos_y]
+                        FINGER_XY[int(id/4 -1)] = (pos_x,pos_y)
                         # if not(ref_dep):
                         #     ref_dep = img_grey[240][320]
                 FINGER_TO_SCR = [FINGER_DEP[x]-SCREEN_DEP for x in range(5)]
@@ -114,8 +115,9 @@ try:
                 mp_draw.draw_landmarks(color_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
                 # mp_draw.draw_landmarks(depth_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
             for i,val in enumerate(FINGER_TO_SCR):
-                if val<1:
-                    print(f"CLICK AT {FINGER_XY[i]}")
+                if val<0.2:
+                    print(f"CLICK AT {(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)}")
+            print(FINGER_XY)
         else:
             ratio = color_image.shape[0]/300
             orig = color_image.copy()
@@ -144,11 +146,11 @@ try:
                 extRight = tuple(screenCnt[screenCnt[:, :, 0].argmax()][0])[0]
                 extTop = tuple(screenCnt[screenCnt[:, :, 1].argmin()][0])[0]
                 extBot = tuple(screenCnt[screenCnt[:, :, 1].argmax()][0])[0]
-                #print(extRight)
-                cx = int(0.5*(extLeft + extRight))
-                cy = int(0.5*(extTop+extBot))
-                # SCREEN_DEPTH = depth_image[cx][cy]
-                #print(np.shape(depth_image))
+                # print(extRight)
+                cx = int((0.5*(extLeft + extRight))*480/1000)
+                cy = int((0.5*(extTop+extBot))*640/1000)
+                SCREEN_DEPTH = depth_image[cx][cy]
+                print(SCREEN_DEPTH)
 
         # Remove background - Set pixels further than clipping_distance to grey
         # grey_color = 153
