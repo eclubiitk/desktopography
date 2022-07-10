@@ -13,6 +13,7 @@ import mediapipe as mp
 
 # Import OpenCV for easy image rendering
 import cv2
+import scaler
 
 # Global Vars
 FINGER_DEP = [0,0,0,0,0]
@@ -115,9 +116,10 @@ try:
                 mp_draw.draw_landmarks(color_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
                 # mp_draw.draw_landmarks(depth_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
             for i,val in enumerate(FINGER_TO_SCR):
-                if val<0.2:
+                if val<0.001:
                     print(f"CLICK AT {(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)}")
-            print(FINGER_XY)
+                    scaler.coordinate(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)
+            # print(FINGER_XY)
         else:
             ratio = color_image.shape[0]/300
             orig = color_image.copy()
