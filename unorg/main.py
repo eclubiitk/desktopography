@@ -10,6 +10,7 @@ import pyrealsense2 as rs
 # Import Numpy for easy array manipulation
 import numpy as np
 import mediapipe as mp
+import math
 
 # Import OpenCV for easy image rendering
 import cv2
@@ -19,7 +20,7 @@ import scaler
 FINGER_DEP = [0,0,0,0,0]
 FINGER_XY = [(0,0),(0,0),(0,0),(0,0),(0,0)]
 FINGER_TO_SCR = [0,0,0,0,0]
-SCREEN_DEP = 0
+SCREEN_DEP = 7800
 
 # Create a pipeline
 pipeline = rs.pipeline()
@@ -108,18 +109,22 @@ try:
                         pos_y = int(lm.y*640)
                         cv2.circle(depth_image,(int(lm.x*640),int(lm.y*480)),5,(0,0,255),5)                 #index finger
                         FINGER_DEP[int(id/4 - 1)] = depth_image[pos_x][pos_y]
+                        if depth_image[pos_x][pos_y]:
+                            FINGER_DEP[int(id/4 - 1)] = 5000000
                         FINGER_XY[int(id/4 -1)] = (pos_x,pos_y)
                         # if not(ref_dep):
                         #     ref_dep = img_grey[240][320]
-                FINGER_TO_SCR = [FINGER_DEP[x]-SCREEN_DEP for x in range(5)]
+                FINGER_TO_SCR = [abs(FINGER_DEP[x]-SCREEN_DEP) for x in range(5)]
                 print(FINGER_TO_SCR)
                 mp_draw.draw_landmarks(color_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
                 # mp_draw.draw_landmarks(depth_image,hand_landmarks,mp_hands.HAND_CONNECTIONS)
             for i,val in enumerate(FINGER_TO_SCR):
-                if val<0.001:
+                if val<50:
                     print(f"CLICK AT {(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)}")
                     scaler.coordinate(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)
             # print(FINGER_XY)
+            # dif = abs(FINGER_DEP[1]-SCREEN_DEP)
+            # print(f'Index Finger Depth: {FINGER_DEP[1]}, Screen Depth: {SCREEN_DEP}, Difference: {dif}')
         else:
             ratio = color_image.shape[0]/300
             orig = color_image.copy()
@@ -151,8 +156,10 @@ try:
                 # print(extRight)
                 cx = int((0.5*(extLeft + extRight))*480/1000)
                 cy = int((0.5*(extTop+extBot))*640/1000)
-                SCREEN_DEPTH = depth_image[cx][cy]
-                print(SCREEN_DEPTH)
+                dep = depth_image[cx][cy]
+                if (dep!=0):
+                    SCREEN_DEP = dep
+                print(SCREEN_DEP)
 
         # Remove background - Set pixels further than clipping_distance to grey
         # grey_color = 153
