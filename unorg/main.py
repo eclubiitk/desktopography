@@ -107,10 +107,10 @@ try:
                     if (id in (4,8,12,16,20)):                    #index finger
                         pos_x = int(lm.x*480)
                         pos_y = int(lm.y*640)
-                        cv2.circle(depth_image,(int(lm.x*640),int(lm.y*480)),5,(0,0,255),5)                 #index finger
                         FINGER_DEP[int(id/4 - 1)] = depth_image[pos_x][pos_y]
-                        if depth_image[pos_x][pos_y]:
-                            FINGER_DEP[int(id/4 - 1)] = 5000000
+                        cv2.circle(depth_image,(int(lm.x*640),int(lm.y*480)),5,(0,0,255),5)                 #index finger
+                        # if depth_image[pos_x][pos_y]:
+                            # FINGER_DEP[int(id/4 - 1)] = 5000000
                         FINGER_XY[int(id/4 -1)] = (pos_x,pos_y)
                         # if not(ref_dep):
                         #     ref_dep = img_grey[240][320]
@@ -121,7 +121,7 @@ try:
             for i,val in enumerate(FINGER_TO_SCR):
                 if val<50:
                     print(f"CLICK AT {(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)}")
-                    scaler.coordinate(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)
+                    # scaler.coordinate(FINGER_XY[i][0]/480,FINGER_XY[i][1]/640)
             # print(FINGER_XY)
             # dif = abs(FINGER_DEP[1]-SCREEN_DEP)
             # print(f'Index Finger Depth: {FINGER_DEP[1]}, Screen Depth: {SCREEN_DEP}, Difference: {dif}')
@@ -131,8 +131,19 @@ try:
             # image = cv2.resize(color_image, (320,240), interpolation=cv2.INTER_LINEAR)
             greyed_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
             greyed_image = cv2.bilateralFilter(greyed_image, 11, 17, 17)
+            # ret2,otsu_img = cv2.threshold(greyed_image,127,255,cv2.THRESH_TRUNC+cv2.THRESH_OTSU)
+            # otsu_img, otsu_cnts, hierarchy = cv2.findContours(otsu_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             edged_image = cv2.Canny(greyed_image,30,200)
             cnts = cv2.findContours(edged_image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #         for i in range(len(otsu_cnts)):
+    #             color_contours = (0, 255, 0) # green - color for contours
+    #             color = (255, 0, 0) # blue - color for convex hull
+    # # draw ith contour
+    #             cv2.drawContours(otsu_img, otsu_cnts, i, color_contours, 1, 8, hierarchy)
+
+    # # draw ith convex hull object
+
+    #             cv2.drawContours(otsu_img, hull, i, color, 1, 8)
             cnts = sorted(cnts[0], key = cv2.contourArea, reverse = True)[:10]
             screenCnt = None
 
@@ -173,6 +184,7 @@ try:
         images = np.hstack((color_image, depth_colormap))
 
         cv2.namedWindow('Align Example', cv2.WINDOW_NORMAL)
+        cv2.imshow('Edges',edged_image)
         cv2.imshow('Align Example', images)
         key = cv2.waitKey(1)
         # Press esc or 'q' to close the image window
