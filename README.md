@@ -10,8 +10,7 @@ And install python wrapper use this [link](https://github.com/IntelRealSense/lib
 
 After following above steps, run the requirement.txt file present in this repository using the commands-
 
-`pip install pipreqs`
-`pipreqs -r directory_name`  #directory name in which the requirement.txt file is present 
+`pip install -r directory_name`  #directory name in which the requirement.txt file is present 
 
 
 After these steps, run the [main.py](./hands_detection/screens.py) file. 
