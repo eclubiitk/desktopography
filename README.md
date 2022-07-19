@@ -11,8 +11,8 @@ https://github.com/IntelRealSense/librealsense/tree/master/wrappers/python#insta
 After following above steps, run the requirement.txt file present in this repository to install necessary libraries
 To run the requirement.txt, use these commands on the terminal-
 
-pip install pipreqs
-pipreqs -r directory_name  #directory name in which the requirement.txt file is present 
+$ pip install pipreqs
+$ pipreqs -r directory_name  #directory name in which the requirement.txt file is present 
 
 
 After these steps, just run the main.py file. 
